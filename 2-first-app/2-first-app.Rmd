@@ -1,0 +1,149 @@
+---
+title: "Ch. 2 - Your First Shiny App"
+author: "Samantha Toet"
+date: "10/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(shiny)
+```
+
+## Running your app
+
+Shiny apps live in a folder and follow a structured file system. 
+
+Keyboard shortcut for running your app: `Cmd/Ctrl` + `Shift` + `Enter`.
+
+`127.0.0.1` is a standard URL address that means “this computer”, which is where the app is run. 
+
+## Adding UI
+
+UI functions generally just generate HTML:
+
+- **Layout functions** set up the basic visual structure of the page, EX. `fluidPage()`.
+
+- **Input control functions** lets the user interact with the app by providing a value, EX. `selectInput()`.
+
+- **Output control functions** tell Shiny where to put rendered output.
+
+## Adding behavior
+
+Reactive programming tells Shiny *how* to perform a computation, but does not order Shiny to actually go do it.
+
+Outputs follow this general pattern:
+
+```{r output, eval=FALSE}
+output$ID <- renderTYPE({
+  # Expression that generates whatever kind of output
+  # renderTYPE expects
+})
+```
+
+### Exercises
+
+**1. Create an app that greets the user by name. You don’t know all the functions you need to do this yet, so I’ve included some lines of code below. Figure out which lines you’ll use and then copy and paste them into the right place in a Shiny app.**
+
+```{r ex1, eval=FALSE}
+textInput("name", "What's your name?") 
+renderText({
+  paste0("Hello ", input$name)
+})
+numericInput("age", "How old are you?")
+textOutput("greeting")
+tableOutput("mortgage")
+renderPlot("histogram", {
+  hist(rnorm(1000))
+}, res = 96)
+```
+
+See app at `here::here("q1/app.R")`
+
+**2. Suppose your friend wants to design an app that allows the user to set a number (`x`) between 1 and 50, and displays the result of multiplying this number by 5. This is their first attempt:**
+
+```{r 2, eval=FALSE}
+ui <- fluidPage(
+  sliderInput("x", label = "If x is", min = 1, max = 50, value = 30),
+  "then x times 5 is",
+  textOutput("product")
+)
+
+server <- function(input, output, session) {
+  output$product <- renderText({ 
+    x * 5
+  })
+}
+```
+
+**But unfortunately it has an error: "Error: object 'x' not found". Can you help them find and correct the error?**
+
+The sample code is missing an `input` value for `x`, and is not assigning the output to anything. They also put the text output in the UI, rather than in the Server using the `glue` function. 
+
+See fixed app at `here::here("q2/app.R")`.
+
+**3. Extend the app from the previous exercise to allow the user to set the value of the multiplier, `y`, so that the app yields the value of `x * y`.**
+
+We need to add an additional slider input and ajust the output formula. 
+
+See app at `here::here("q3/app.R")`
+
+**4. Replace the UI and server components of your app from the previous exercise with the UI and server components below, run the app, and describe the app’s functionality. Then reduce the duplication in the app by using a reactive expression.**
+
+```{r 4, eval=FALSE}
+ui <- fluidPage(
+  sliderInput("x", "If x is", min = 1, max = 50, value = 30),
+  sliderInput("y", "and y is", min = 1, max = 50, value = 5),
+  "then, (x * y) is", textOutput("product"),
+  "and, (x * y) + 5 is", textOutput("product_plus5"),
+  "and (x * y) + 10 is", textOutput("product_plus10")
+)
+
+server <- function(input, output, session) {
+  output$product <- renderText({ 
+    product <- input$x * input$y
+    product
+  })
+  output$product_plus5 <- renderText({ 
+    product <- input$x * input$y
+    product + 5
+  })
+  output$product_plus10 <- renderText({ 
+    product <- input$x * input$y
+    product + 10
+  })
+}
+```
+
+
+The different output calls can be adjusted to one single call using reactive expressions. 
+
+See app at `here::here("q4/app.R")`
+
+**5. The following app is very similar to one you’ve seen earlier in the chapter: you select a dataset from a package (this time we’re using the ggplot2 package) and the app prints out a summary and plot of the data. It also follows good practice and makes use of reactive expressions to avoid redundancy of code. However there are three bugs in the code provided below. Can you find and fix them?**
+
+```{r 5, eval=FALSE}
+library(ggplot2)
+datasets <- data(package = "ggplot2")$results[c(2, 4, 10), "Item"]
+
+ui <- fluidPage(
+  selectInput("dataset", "Dataset", choices = datasets),
+  verbatimTextOutput("summary"),
+  tableOutput("plot")      # 1- wrong Output function
+)
+
+server <- function(input, output, session) {
+  dataset <- reactive({
+    get(input$dataset, "package:ggplot2")
+  })
+  output$summmry <- renderPrint({     # 2- typo in output object
+    summary(dataset())
+  })
+  output$plot <- renderPlot({
+    plot(dataset)
+  }, res = 96)     # 3 - res arg should be inside of renderPlot
+}
+```
+
+See app at `here::here("q5/app.R")`
