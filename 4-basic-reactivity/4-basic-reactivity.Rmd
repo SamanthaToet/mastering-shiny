@@ -97,4 +97,32 @@ A reactive graph essentially is a cycle that is updated every time the input is 
 
 When assembling an app, it is a best practice to ensure that the functions outside of the app focus on the computation so that the code inside of the app can focus on responding to user actions.
 
+Outputs are atomic: they’re either executed or not as a whole.
+
+To create a reactive expression, we call `reactive()` and assign the results to a variable. To later use the expression, we call the variable like it’s a function.
+
+Modules allow you to extract out repeated code for reuse, while guaranteeing that it’s isolated from everything else in the app.
+
+### Practice 
+
+**1. Use reactive expressions to reduce the duplicated code in the following simple apps.**
+
 #TODO: finish problems once they've been added
+
+## Controlling Timing
+
+`reactiveTimer()` is a reactive expression that has a dependency on a hidden input: the current time.
+
+An `actionButton()` helps with expensive click computations. 
+
+`eventReactive()` makes it possible to separate the dependencies from the values used to compute the result.
+
+### Observers
+
+There are two important differences between `observeEvent()` and `eventReactive()`:
+
+- You don’t assign the result of `observeEvent()` to a variable, so
+- You can’t refer to it from other reactive consumers.
+
+Observers and outputs are closely related. You can think of outputs as having a special side-effect: updating the HTML in the user’s browser. 
+
